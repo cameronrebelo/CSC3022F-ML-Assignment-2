@@ -11,6 +11,7 @@ def main():
               FourRooms.UP, FourRooms.UP, FourRooms.UP,
               FourRooms.RIGHT, FourRooms.RIGHT, FourRooms.RIGHT,
               FourRooms.DOWN, FourRooms.DOWN, FourRooms.DOWN]
+   
 
     aTypes = ['UP', 'DOWN', 'LEFT', 'RIGHT']
     gTypes = ['EMPTY', 'RED', 'GREEN', 'BLUE']

@@ -1,0 +1,8 @@
+.vscode/
+venv/
+*.pdf
+data/
+*.txt
+!requirements.txt
+/legacy/
+/src/__pycache__
