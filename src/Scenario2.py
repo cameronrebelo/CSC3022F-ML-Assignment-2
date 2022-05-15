@@ -1,7 +1,7 @@
 from FourRooms import FourRooms
 import numpy as np
 
-e = 0.8
+e = 0.5
 qTable = {} #some default value
 rTable = {}
 
@@ -47,6 +47,16 @@ def tableUpdate(oldPos,action,newPos):
     qTable[oldPos][action] += lr *((rTable[oldPos][action] + discount*maxNext(newPos, True)) -  qTable[oldPos][action])
 
 
+def nextActionReward(currentPosition, action):
+    if(action == 0 ):
+        return rTable[currentPosition[0]][currentPosition[1]-1]
+    if(action == 1 ):
+        return rTable[currentPosition[0]][currentPosition[1]+1]
+    if(action == 2 ):
+        return rTable[currentPosition[0]-1][currentPosition[1]]
+    if(action == 3 ):
+        return rTable[currentPosition[0]+1][currentPosition[1]]
+
 def isLegalPosition(currentPosition,action):
     if(rTable[currentPosition][action]==-1):
         print("illegal")
@@ -61,10 +71,10 @@ def printOut():
     for i in range(13):
         for j in range(13):
             name = (i,j)
-            first = qTable[name][0]
-            second = qTable[name][1]
-            third = qTable[name][2]
-            fourth = qTable[name][3]
+            first = rTable[name][0]
+            second = rTable[name][1]
+            third = rTable[name][2]
+            fourth = rTable[name][3]
             print(name, first, second, third, fourth)
             
 
@@ -73,11 +83,10 @@ def printOut():
 def main():
     global qTable
     global rTable
-    global e
     
-    for iteration in range(5):
+    for iteration in range(1):
         # Create FourRooms Object
-        fourRoomsObj = FourRooms('simple')
+        fourRoomsObj = FourRooms('multi')
         for i in range(13):
             for j in range(13):
                 qTable[(i,j)] = {}
@@ -87,7 +96,7 @@ def main():
                     rTable[(i,j)][k] = 0
         for i in range (13):
             for j in range(13):
-                if(i == 0 or i == 12 or j == 0 or j == 12 or i == 6):
+                if(i == 0 or i == 12 or j == 0 or j == 12 or j == 6):
                     for k in range(4):
                         rTable[(i,j)][k] = -1
         hrznHall = [(6,3),(6,10)]
@@ -102,13 +111,13 @@ def main():
             rTable[i][1] = 0
             rTable[i][2] = -1
             rTable[i][3] = -1
-        wallList = [(1,6),(3,6),(4,6),(5,6),(7,7),(8,7),(10,7),(11,7)]
+        wallList = [(6,1),(6,3),(6,4),(6,5),(7,7),(7,8),(7,10),(7,11)]
         for i in wallList:
             for a in range(4):
                 rTable[i][j] = -1
 
         printOut()
-        for epoch in range(20):
+        for epoch in range(10):
 
             # Starting Position
             currentPosition = fourRoomsObj.getPosition()
@@ -120,7 +129,9 @@ def main():
                 nextAction = explorationFunction(currentPosition)
                 gridType, newPos, packagesRemaining, isTerminal = fourRoomsObj.takeAction(nextAction)
                 if(gridType>0):
-                    rTable[currentPosition][nextAction] = 100
+                    if(packagesRemaining>0):
+                        rTable[currentPosition][nextAction] = 100
+                        # set current found package temp to 0
                 print("Agent took {0} action and moved to {1} of type {2}".format (aTypes[nextAction], newPos, gTypes[gridType]))
                 tableUpdate(currentPosition,nextAction,newPos)
                 # print("Q\n\n",qTable)
@@ -128,9 +139,6 @@ def main():
             # print("Q\n\n",qTable)
             fourRoomsObj.showPath(-1,"./data/Scenario1_iter_{0}_epoch_{1}.png".format(iteration,epoch))
             fourRoomsObj.newEpoch()
-            if(e<1):
-                e-=0.05
-        printOut()
             
 
 if __name__ == "__main__":
