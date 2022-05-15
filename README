@@ -1,0 +1,18 @@
+RBLCAM001 - ML ASSIGNMENT 2
+
+The 3 scenarios are kept in the src folder. By default the scenarios 
+will run one iteration of a 20 epoch agent. This can be changed by changing 
+the range of the iteration loop. The outputs for the paths will be stored in their
+respective folder in the data directory.
+
+src/Scenario1
+    Simple Four Rooms with one package, will take -stochastic as CLI to make the scenario
+    operate in a stochastic environment, by default the environment is deterministic.
+
+src/Scenario2
+    Multi Four Rooms with many packages, will take -stochastic as CLI to make the scenario
+    operate in a stochastic environment, by default the environment is deterministic.
+
+src/Scenario3
+    Multi Four Rooms with RGB packages that have a specific order, will take -stochastic 
+    as CLI to make the scenario operate in a stochastic environment, by default the environment is deterministic.
