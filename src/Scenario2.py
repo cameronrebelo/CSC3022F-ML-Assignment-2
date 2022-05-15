@@ -1,9 +1,11 @@
+import sys
 from FourRooms import FourRooms
 import numpy as np
 
 e = 0.8
-qTable = {} #some default value
+qTable = {}
 rTable = {}
+stoFlag = False
 
 lr = 1
 discount = 0.5
@@ -23,8 +25,6 @@ def explorationFunction(currentPosition):
         action = maxNext(currentPosition, False)
         while(isLegalPosition(currentPosition, action)==False):
             action = maxNext(currentPosition, False)
-    # if(e>0):          
-    #     e -= 0.5
     return action
 
 def maxNext(currentPosition, update):
@@ -49,11 +49,7 @@ def tableUpdate(oldPos,action,newPos):
 
 def isLegalPosition(currentPosition,action):
     if(rTable[currentPosition][action]==-1):
-        print("illegal")
-        for a in range(4):
-            print(rTable[currentPosition][a])
         return False
-    print("legal")
     return True
 
 
@@ -74,10 +70,15 @@ def main():
     global qTable
     global rTable
     global e
+    global stoFlag
+
+    if(len(sys.argv) >1):
+        if(sys.argv[1] == '-stochastic'):
+            stoFlag = True
     
     for iteration in range(1):
         # Create FourRooms Object
-        fourRoomsObj = FourRooms('multi')
+        fourRoomsObj = FourRooms('multi', stoFlag)
         for i in range(13):
             for j in range(13):
                 qTable[(i,j)] = {}
@@ -123,12 +124,10 @@ def main():
                     rTable[currentPosition][nextAction] = 100
                 print("Agent took {0} action and moved to {1} of type {2}".format (aTypes[nextAction], newPos, gTypes[gridType]))
                 tableUpdate(currentPosition,nextAction,newPos)
-                # print("Q\n\n",qTable)
                 currentPosition = newPos
-            # print("Q\n\n",qTable)
-            fourRoomsObj.showPath(-1,"./data/Scenario2_iter_{0}_epoch_{1}.png".format(iteration,epoch))
+            fourRoomsObj.showPath(-1,"./data/Scenario2/Scenario2_iter_{0}_epoch_{1}.png".format(iteration,epoch))
             fourRoomsObj.newEpoch()
-            if(e<1):
+            if(e>0):
                 e-=0.05
         printOut()
             

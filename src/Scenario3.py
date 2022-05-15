@@ -1,12 +1,25 @@
 from FourRooms import FourRooms
 import numpy as np
+import copy
+import sys
 
 e = 0.8
-qTable = {} #some default value
-rTable = {}
-
 lr = 1
 discount = 0.5
+
+stoFlag = False
+
+qTable = {} 
+rTable = {}
+
+qTableRED = {} 
+rTableRED = {}
+qTableGREEN = {} 
+rTableGREEN = {}
+qTableBLUE = {} 
+rTableBLUE = {}
+mode = 1
+
 aTypes = ['UP', 'DOWN', 'LEFT', 'RIGHT']
 gTypes = ['EMPTY', 'RED', 'GREEN', 'BLUE']
 
@@ -14,26 +27,38 @@ def explorationFunction(currentPosition):
     global e
     #starts off very exploratative and gradualy becomes less
     if(np.random.random()<e):
-        print("random")
         action = np.random.randint(0,4)
         while(isLegalPosition(currentPosition, action)==False):
             action = np.random.randint(0,4)
     else:
-        print("deterministic")
         action = maxNext(currentPosition, False)
         while(isLegalPosition(currentPosition, action)==False):
             action = maxNext(currentPosition, False)
-    # if(e>0):          
-    #     e -= 0.5
     return action
 
 def maxNext(currentPosition, update):
-    actions = [
-                 qTable[currentPosition][0]
-                ,qTable[currentPosition][1]
-                ,qTable[currentPosition][2]
-                ,qTable[currentPosition][3]
-              ]
+    if(mode == 1):
+        actions = [
+                    qTableRED[currentPosition][0]
+                    ,qTableRED[currentPosition][1]
+                    ,qTableRED[currentPosition][2]
+                    ,qTableRED[currentPosition][3]
+                ]
+    if(mode == 2):
+        actions = [
+                    qTableGREEN[currentPosition][0]
+                    ,qTableGREEN[currentPosition][1]
+                    ,qTableGREEN[currentPosition][2]
+                    ,qTableGREEN[currentPosition][3]
+                ]
+    if(mode == 3):
+        actions = [
+                    qTableBLUE[currentPosition][0]
+                    ,qTableBLUE[currentPosition][1]
+                    ,qTableBLUE[currentPosition][2]
+                    ,qTableBLUE[currentPosition][3]
+                ]            
+        
     maxQValue = max(actions)
     if(update==True):
         return maxQValue
@@ -43,30 +68,57 @@ def maxNext(currentPosition, update):
 
 
 def tableUpdate(oldPos,action,newPos):
-    global qTable
-    qTable[oldPos][action] += lr *((rTable[oldPos][action] + discount*maxNext(newPos, True)) -  qTable[oldPos][action])
-
+    global qTableRED
+    global qTableGREEN
+    global qTableBLUE
+    if(mode == 1):
+        qTableRED[oldPos][action] += lr *((rTableRED[oldPos][action] + discount*maxNext(newPos, True)) -  qTableRED[oldPos][action])
+    if(mode == 2):
+        qTableGREEN[oldPos][action] += lr *((rTableGREEN[oldPos][action] + discount*maxNext(newPos, True)) -  qTableGREEN[oldPos][action])
+    if(mode == 3):
+        qTableBLUE[oldPos][action] += lr *((rTableBLUE[oldPos][action] + discount*maxNext(newPos, True)) -  qTableBLUE[oldPos][action])
 
 def isLegalPosition(currentPosition,action):
-    if(rTable[currentPosition][action]==-1):
-        return False
-    return True
+    if(mode == 1):
+        if(rTableRED[currentPosition][action]==-1):
+            return False
+        return True
+    if(mode == 2):
+        if(rTableGREEN[currentPosition][action]==-1):
+            return False
+        return True
+    if(mode == 3):
+        if(rTableBLUE[currentPosition][action]==-1):
+            return False
+        return True
+    
 
 
-def printOut():
+def printOut(package):
+    if(package==1):
+        table = rTableRED
+    if(package==2):
+        table = rTableGREEN
+    if(package==3):
+        table = rTableBLUE
     for i in range(13):
         for j in range(13):
             name = (i,j)
-            first = qTable[name][0]
-            second = qTable[name][1]
-            third = qTable[name][2]
-            fourth = qTable[name][3]
+            first = table[name][0]
+            second = table[name][1]
+            third = table[name][2]
+            fourth = table[name][3]
             print(name, first, second, third, fourth)
             
 
 
 
 def main():
+    global stoFlag
+    if(len(sys.argv)>1):
+        if(sys.argv[1].lower()=="-stochastic"):
+            stoFlag = True
+
     global qTable
     global rTable
     global qTableRED
@@ -75,12 +127,13 @@ def main():
     global rTableRED
     global rTableGREEN
     global rTableBLUE
+    global mode
 
     global e
     
     for iteration in range(1):
         # Create FourRooms Object
-        fourRoomsObj = FourRooms('rgb')
+        fourRoomsObj = FourRooms('rgb',stoFlag)
         for i in range(13):
             for j in range(13):
                 qTable[(i,j)] = {}
@@ -108,12 +161,16 @@ def main():
         wallList = [(1,6),(3,6),(4,6),(5,6),(7,7),(8,7),(10,7),(11,7)]
         for i in wallList:
             for a in range(4):
-                rTableRED[i][j] = -1
-        rTableRED, rTableGREEN, rTableBLUE = rTable
-        qTableRED, qTableGREEN, qTableBLUE = qTable
+                rTable[i][j] = -1
+        rTableRED = copy.deepcopy(rTable)
+        rTableGREEN = copy.deepcopy(rTable)
+        rTableBLUE = copy.deepcopy(rTable)
+        qTableRED = copy.deepcopy(qTable)
+        qTableGREEN = copy.deepcopy(qTable)
+        qTableBLUE = copy.deepcopy(qTable)
 
 
-        printOut()
+        # printOut()
         for epoch in range(20):
 
             # Starting Position
@@ -122,57 +179,83 @@ def main():
 
             # Repeat until in a terminal state
             isTerminal=fourRoomsObj.isTerminal()
-            qTable = qTableRED
-            rTable = rTableRED
+            # qTable = qTableRED
+            # rTable = rTableRED
+            mode = 1
             while(isTerminal==False):
                 nextAction = explorationFunction(currentPosition)
                 gridType, newPos, packagesRemaining, isTerminal = fourRoomsObj.takeAction(nextAction)
 
-                if(packagesRemaining==3): #update red package tables
-                    rTableRED = rTable
-                    qTableRED = qTable
-                    
-                if(packagesRemaining==2): # save red information then switch tables to green
-                    rTableRED = rTable
-                    rTable = rTableGREEN
-                    
-                    qTableRED = qTable
-                    qTable = qTableGREEN
+                print(packagesRemaining)
+                # if(packagesRemaining==3): #update red package tables
+                #     rTableRED = rTable
+                #     qTableRED = qTable
 
-                if(packagesRemaining==3): # save green information then switch tables to blue
-                    rTableRED = rTable
-                    rTable = rTableBLUE
+                # if(packagesRemaining==2): # save red information then switch tables to green
+                #     rTableRED = rTable
+                #     rTable = rTableGREEN
                     
-                    qTableRED = qTable
-                    qTable = qTableBLUE
+                #     qTableRED = qTable
+                #     qTable = qTableGREEN
 
-                if(packagesRemaining==0): # save blue
-                    rTableBLUE = rTable
-                    qTableBLUE = qTable
+                # if(packagesRemaining==3): # save green information then switch tables to blue
+                #     rTableRED = rTable
+                #     rTable = rTableBLUE
+                    
+                #     qTableRED = qTable
+                #     qTable = qTableBLUE
+
+                # if(packagesRemaining==0): # save blue
+                #     rTableBLUE = rTable
+                #     qTableBLUE = qTable
 
 
                 if(gridType==1): # if found red package, update reds table and prevent blue and green from going to that cell
+                    # qTableRED = qTable
+                    
                     rTableRED[currentPosition][nextAction] = 100
                     rTableGREEN[currentPosition][nextAction] = -1
                     rTableBLUE[currentPosition][nextAction] = -1
+                    tableUpdate(currentPosition,nextAction,newPos)
+                    mode = 2
+
+                    # tableUpdate(currentPosition,nextAction,newPos)
+
+                    # rTable = rTableGREEN
+                    # qTable = qTableGREEN
+
                 if(gridType==2): # if found green package, update greens table and prevent blue and red from going to that cell
+                    # qTableGREEN = qTable
+                    
                     rTableRED[currentPosition][nextAction] = -1
                     rTableGREEN[currentPosition][nextAction] = 100
                     rTableBLUE[currentPosition][nextAction] = -1
+                    tableUpdate(currentPosition,nextAction,newPos)
+                    mode = 3
+                    # tableUpdate(currentPosition,nextAction,newPos)
+
+                    # rTable = rTableBLUE
+                    # qTable = qTableBLUE
+                    
                 if(gridType==3): # if found blue package, update blues table and prevent red and green from going to that cell
+                    # qTableBLUE = qTable
+                    
                     rTableRED[currentPosition][nextAction] = -1
                     rTableGREEN[currentPosition][nextAction] = -1
                     rTableBLUE[currentPosition][nextAction] = 100
+                    tableUpdate(currentPosition,nextAction,newPos)
+
+                    # mode = 3
+
                 print("Agent took {0} action and moved to {1} of type {2}".format (aTypes[nextAction], newPos, gTypes[gridType]))
-                tableUpdate(currentPosition,nextAction,newPos)
-                # print("Q\n\n",qTable)
                 currentPosition = newPos
-            # print("Q\n\n",qTable)
-            fourRoomsObj.showPath(-1,"./data/Scenario2_iter_{0}_epoch_{1}.png".format(iteration,epoch))
+            printOut(1)
+            printOut(2)
+            printOut(3)
+            fourRoomsObj.showPath(-1,"./data/Scenario3/Scenario3_iter_{0}_epoch_{1}.png".format(iteration,epoch))
             fourRoomsObj.newEpoch()
-            if(e<1):
+            if(e>0):
                 e-=0.05
-        printOut()
             
 
 if __name__ == "__main__":
