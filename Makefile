@@ -3,7 +3,7 @@ install: venv
 venv:
 	test -d venv || python3 -m venv venv
 dataclean:
-	rm ./data/*.png
+	rm ./data/*/*.png
 clean:
 	rm -rf venv
 	find -iname "*.pyc" -delete

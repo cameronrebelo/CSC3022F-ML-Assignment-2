@@ -3,13 +3,14 @@ from FourRooms import FourRooms
 import numpy as np
 
 e = 0.8
+lr = 1
+discount = 0.5
+
 qTable = {} #some default value
 rTable = {}
 
 stoFlag = False
 
-lr = 1
-discount = 0.5
 aTypes = ['UP', 'DOWN', 'LEFT', 'RIGHT']
 gTypes = ['EMPTY', 'RED', 'GREEN', 'BLUE']
 
@@ -17,12 +18,10 @@ def explorationFunction(currentPosition):
     global e
     #starts off very exploratative and gradualy becomes less
     if(np.random.random()<e):
-        print("random")
         action = np.random.randint(0,4)
         while(isLegalPosition(currentPosition, action)==False):
             action = np.random.randint(0,4)
     else:
-        print("deterministic")
         action = maxNext(currentPosition, False)
         while(isLegalPosition(currentPosition, action)==False):
             action = maxNext(currentPosition, False)
@@ -50,11 +49,7 @@ def tableUpdate(oldPos,action,newPos):
 
 def isLegalPosition(currentPosition,action):
     if(rTable[currentPosition][action]==-1):
-        print("illegal")
-        for a in range(4):
-            print(rTable[currentPosition][a])
         return False
-    print("legal")
     return True
 
 
@@ -113,7 +108,6 @@ def main():
             for a in range(4):
                 rTable[i][j] = -1
 
-        printOut()
         for epoch in range(20):
 
             # Starting Position
