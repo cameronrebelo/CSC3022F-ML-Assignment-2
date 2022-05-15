@@ -49,11 +49,7 @@ def tableUpdate(oldPos,action,newPos):
 
 def isLegalPosition(currentPosition,action):
     if(rTable[currentPosition][action]==-1):
-        print("illegal")
-        for a in range(4):
-            print(rTable[currentPosition][a])
         return False
-    print("legal")
     return True
 
 
@@ -73,11 +69,18 @@ def printOut():
 def main():
     global qTable
     global rTable
+    global qTableRED
+    global qTableGREEN
+    global qTableBLUE
+    global rTableRED
+    global rTableGREEN
+    global rTableBLUE
+
     global e
     
-    for iteration in range(20):
+    for iteration in range(1):
         # Create FourRooms Object
-        fourRoomsObj = FourRooms('simple')
+        fourRoomsObj = FourRooms('rgb')
         for i in range(13):
             for j in range(13):
                 qTable[(i,j)] = {}
@@ -105,7 +108,10 @@ def main():
         wallList = [(1,6),(3,6),(4,6),(5,6),(7,7),(8,7),(10,7),(11,7)]
         for i in wallList:
             for a in range(4):
-                rTable[i][j] = -1
+                rTableRED[i][j] = -1
+        rTableRED, rTableGREEN, rTableBLUE = rTable
+        qTableRED, qTableGREEN, qTableBLUE = qTable
+
 
         printOut()
         for epoch in range(20):
@@ -116,17 +122,53 @@ def main():
 
             # Repeat until in a terminal state
             isTerminal=fourRoomsObj.isTerminal()
+            qTable = qTableRED
+            rTable = rTableRED
             while(isTerminal==False):
                 nextAction = explorationFunction(currentPosition)
                 gridType, newPos, packagesRemaining, isTerminal = fourRoomsObj.takeAction(nextAction)
-                if(gridType>0):
-                    rTable[currentPosition][nextAction] = 100
+
+                if(packagesRemaining==3): #update red package tables
+                    rTableRED = rTable
+                    qTableRED = qTable
+                    
+                if(packagesRemaining==2): # save red information then switch tables to green
+                    rTableRED = rTable
+                    rTable = rTableGREEN
+                    
+                    qTableRED = qTable
+                    qTable = qTableGREEN
+
+                if(packagesRemaining==3): # save green information then switch tables to blue
+                    rTableRED = rTable
+                    rTable = rTableBLUE
+                    
+                    qTableRED = qTable
+                    qTable = qTableBLUE
+
+                if(packagesRemaining==0): # save blue
+                    rTableBLUE = rTable
+                    qTableBLUE = qTable
+
+
+                if(gridType==1): # if found red package, update reds table and prevent blue and green from going to that cell
+                    rTableRED[currentPosition][nextAction] = 100
+                    rTableGREEN[currentPosition][nextAction] = -1
+                    rTableBLUE[currentPosition][nextAction] = -1
+                if(gridType==2): # if found green package, update greens table and prevent blue and red from going to that cell
+                    rTableRED[currentPosition][nextAction] = -1
+                    rTableGREEN[currentPosition][nextAction] = 100
+                    rTableBLUE[currentPosition][nextAction] = -1
+                if(gridType==3): # if found blue package, update blues table and prevent red and green from going to that cell
+                    rTableRED[currentPosition][nextAction] = -1
+                    rTableGREEN[currentPosition][nextAction] = -1
+                    rTableBLUE[currentPosition][nextAction] = 100
                 print("Agent took {0} action and moved to {1} of type {2}".format (aTypes[nextAction], newPos, gTypes[gridType]))
                 tableUpdate(currentPosition,nextAction,newPos)
                 # print("Q\n\n",qTable)
                 currentPosition = newPos
             # print("Q\n\n",qTable)
-            fourRoomsObj.showPath(-1,"./data/Scenario1_iter_{0}_epoch_{1}.png".format(iteration,epoch))
+            fourRoomsObj.showPath(-1,"./data/Scenario2_iter_{0}_epoch_{1}.png".format(iteration,epoch))
             fourRoomsObj.newEpoch()
             if(e<1):
                 e-=0.05
