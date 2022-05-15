@@ -23,17 +23,20 @@ gTypes = ['EMPTY', 'RED', 'GREEN', 'BLUE']
 
 def explorationFunction(currentPosition):
     global e
-    #starts off very exploratative and gradualy becomes less
+    # Starts off very exploratative and gradualy becomes less
     if(np.random.random()<e):
         action = np.random.randint(0,4)
+        # Make sure agent is moving to valid state, if not, choose again
         while(isLegalPosition(currentPosition, action)==False):
             action = np.random.randint(0,4)
     else:
         action = maxNext(currentPosition, False)
+        # Make sure agent is moving to valid state, if not, choose again
         while(isLegalPosition(currentPosition, action)==False):
             action = maxNext(currentPosition, False)
     return action
 
+# Choose best action based on reward table for current package agent is searching for
 def maxNext(currentPosition, update):
     if(mode == 1):
         actions = [
@@ -73,7 +76,7 @@ def tableUpdate(oldPos,action,newPos):
     qTableGREEN[oldPos][action] += lr *((rTableGREEN[oldPos][action] + discount*maxNext(newPos, True)) -  qTableGREEN[oldPos][action])
     qTableBLUE[oldPos][action] += lr *((rTableBLUE[oldPos][action] + discount*maxNext(newPos, True)) -  qTableBLUE[oldPos][action])
 
-
+# check if the agent is in a legal position
 def isLegalPosition(currentPosition,action):
     if(mode == 1):
         if(rTableRED[currentPosition][action]==-1):
@@ -108,7 +111,7 @@ def main():
         if(sys.argv[1].lower()=="-stochastic"):
             stoFlag = True
     
-    for iteration in range(10):
+    for iteration in range(1):
         # Create FourRooms Object
         fourRoomsObj = FourRooms('rgb',stoFlag)
 
@@ -207,14 +210,18 @@ def main():
                     else:
                         rTableBLUE[currentPosition][nextAction] = 100
                         isTerminal=True
+
                 print("Agent took {0} action and moved to {1} of type {2}".format (aTypes[nextAction], newPos, gTypes[gridType]))
+                # Update the tables
                 tableUpdate(currentPosition,nextAction,newPos)
+                # Move postition
                 currentPosition = newPos
+
             fourRoomsObj.showPath(-1,"./data/Scenario1/Scenario1_iter_{0}_epoch_{1}.png".format(iteration,epoch))
             fourRoomsObj.newEpoch()
+            # Decrease e threshold to make agent more exploitative
             if(e>0):
                 e-=0.05
-        # printOut()
             
 
 if __name__ == "__main__":
